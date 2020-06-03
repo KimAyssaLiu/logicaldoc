@@ -1,0 +1,20 @@
+FROM python:3.7.3-stretch
+
+
+
+
+
+ADD /config/config.sh /opt/config/config.sh
+
+ADD /config/cookie.sh /opt/config/cookie.sh
+
+ADD /config/file1.sh /opt/config/file1.sh
+
+ADD /config/file2.sh /opt/config/file2.sh
+ADD /config/file3.sh /opt/config/file3.sh
+ADD /config/file4.sh /opt/config/file4.sh
+ADD /config/file5.sh /opt/config/file5.sh
+
+
+RUN chmod +x /opt/config/config.sh
+

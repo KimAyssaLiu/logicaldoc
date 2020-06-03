@@ -1,0 +1,11 @@
+FROM python:3.7.3-stretch
+
+
+RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple requests
+
+ADD /poc/poc.py /opt/poc/poc.py
+
+ADD /poc/autoscript.sh /opt/poc/autoscript.sh
+
+RUN chmod +x /opt/poc/autoscript.sh
+

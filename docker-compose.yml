@@ -1,0 +1,102 @@
+version: '2.1'
+
+volumes:
+  ldoc_conf:
+    driver: local
+  ldoc_repository:
+    driver: local    
+  ldoc_db:
+    driver: local
+  
+services:
+ db:
+  container_name: mysql-ld
+  image: mysql:5.7
+  volumes:
+   - ldoc_db:/var/lib/mysql
+  ports:
+   - 3306:3306
+  environment:
+   - MYSQL_ROOT_PASSWORD=mysqlroot
+   - MYSQL_DATABASE=logicaldoc
+   - MYSQL_USER=ldoc
+   - MYSQL_PASSWORD=changeme
+
+ web:     
+  container_name: logicaldoc-ce
+  image: logicaldoc/logicaldoc-ce:8.1.1
+  depends_on:
+   - db
+  command: ["./wait-for-it.sh", "mysql-ld:3306", "-t", "30", "--", "/opt/logicaldoc/start-logicaldoc.sh", "run"]
+  ports:
+   - 8080:8080
+  environment:
+   - LDOC_MEMORY=2000
+   - DB_ENGINE=mysql
+   - DB_HOST=mysql-ld
+   - DB_NAME=logicaldoc
+   - DB_USER=ldoc
+   - DB_PASSWORD=changeme
+  volumes:
+   - ldoc_conf:/opt/logicaldoc/conf
+   - ldoc_repository:/opt/logicaldoc/repository
+   # -./image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/setup/sc/skins/Simplicity/images/brand/logo.png
+   - ./image/logo.png:/usr/bin/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/setup/sc/skins/Enterprise/images/brand/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/login/sc/skins/Simplicity/images/brand/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/login/sc/skins/Tahoe/images/brand/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/login/sc/skins/Enterprise/images/brand/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/frontend/sc/skins/Simplicity/images/brand/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/frontend/sc/skins/Tahoe/images/brand/logo.png
+   #- /image/logo.png:/opt/logicaldoc/tomcat/webapps/ROOT/frontend/sc/skins/Enterprise/images/brand/logo.png
+ config:
+
+  build:
+
+   context: .
+
+   dockerfile: Dockerfile_config
+
+  container_name: config-app
+   
+  environment:
+ 
+    - PYTHONIOENCODING=utf-8
+
+  depends_on:
+
+   - db
+   - web
+
+  volumes: 
+
+   - "./config/:/opt/config/"
+
+  entrypoint: /opt/config/config.sh
+
+
+ poc:
+
+  build:
+
+   context: .
+
+   dockerfile: Dockerfile_poc
+
+  container_name: poc-app
+    
+  environment:
+ 
+   - PYTHONIOENCODING=utf-8
+
+  depends_on:
+
+   - db
+   - web
+   - config
+
+  volumes: 
+
+   - "./poc/:/opt/poc/"
+
+  entrypoint: /opt/poc/autoscript.sh
